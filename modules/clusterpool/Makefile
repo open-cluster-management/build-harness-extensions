@@ -35,7 +35,7 @@ CLUSTERPOOL_CHECKOUT_TIMEOUT_MINUTES ?= 10
 CLUSTERPOOL_LIFETIME ?=
 CLUSTERPOOL_GROUP_NAME ?= system:masters
 CLUSTERPOOL_SERVICE_ACCOUNT ?=
-
+CLUSTERPOOL_INSTALL_CONFIG_SECRET_RANDOM = `head /dev/urandom | LC_CTYPE=C tr -dc "[:lower:][:digit:]" | head -c 5 ; echo ''`
 # AWS
 CLUSTERPOOL_AWS_BASE_DOMAIN ?=
 CLUSTERPOOL_AWS_REGION ?= us-east-1
@@ -141,6 +141,12 @@ clusterpool/aws/create-clusterpool: %aws/create-clusterpool: %_init
 		-e "s;__CLUSTERPOOL_PULL_SECRET_NAME__;$(CLUSTERPOOL_PULL_SECRET_NAME);g" \
 		$(BUILD_HARNESS_EXTENSIONS_PATH)/modules/clusterpool/templates/clusterpool.prefix.yaml.template \
 		> .$(CLUSTERPOOL_NAME).aws.clusterpool.yaml
+	@if [ ! -z "$(CLUSTERPOOL_INSTALL_CONFIG_SECRET_FILE)" ]; then \
+		if [ "default" ==  "$(CLUSTERPOOL_INSTALL_CONFIG_SECRET_FILE)" ]; then \
+			$(SELF) oc/command OC_COMMAND="create secret generic install.aws.secret.$(CLUSTERPOOL_INSTALL_CONFIG_SECRET_RANDOM) --from-file=$(BUILD_HARNESS_EXTENSIONS_PATH)/modules/clusterpool/templates/install-config.aws.yaml.template -n $(CLUSTERPOOL_HOST_NAMESPACE)"; else \
+			$(SELF) oc/command OC_COMMAND="create secret generic install.aws.secret.$(CLUSTERPOOL_INSTALL_CONFIG_SECRET_RANDOM) --from-file=$(CLUSTERPOOL_INSTALL_CONFIG_SECRET_FILE) -n $(CLUSTERPOOL_HOST_NAMESPACE)"; fi; \
+		sed -e "s;__CLUSTERPOOL_INSTALL_CONFIG_SECRET_NAME__;install.aws.secret.$(CLUSTERPOOL_INSTALL_CONFIG_SECRET_RANDOM);g" \
+			$(BUILD_HARNESS_EXTENSIONS_PATH)/modules/clusterpool/templates/clusterpool.installconfigsecret.yaml.template >> .$(CLUSTERPOOL_NAME).aws.clusterpool.yaml; fi
 	@sed -e "s;__CLUSTERPOOL_AWS_CRED_NAME__;$(CLUSTERPOOL_AWS_CRED_NAME);g" \
 		-e "s;__CLUSTERPOOL_AWS_REGION__;$(CLUSTERPOOL_AWS_REGION);g" \
 		$(BUILD_HARNESS_EXTENSIONS_PATH)/modules/clusterpool/templates/clusterpool.suffix.aws.yaml.template \
@@ -165,6 +171,12 @@ clusterpool/azure/create-clusterpool: %azure/create-clusterpool: %_init
 		-e "s;__CLUSTERPOOL_PULL_SECRET_NAME__;$(CLUSTERPOOL_PULL_SECRET_NAME);g" \
 		$(BUILD_HARNESS_EXTENSIONS_PATH)/modules/clusterpool/templates/clusterpool.prefix.yaml.template \
 		> .$(CLUSTERPOOL_NAME).az.clusterpool.yaml
+	@if [ ! -z "$(CLUSTERPOOL_INSTALL_CONFIG_SECRET_FILE)" ]; then \
+		if [ "default" ==  "$(CLUSTERPOOL_INSTALL_CONFIG_SECRET_FILE)" ]; then \
+			$(SELF) oc/command OC_COMMAND="create secret generic install.azure.secret.$(CLUSTERPOOL_INSTALL_CONFIG_SECRET_RANDOM) --from-file=$(BUILD_HARNESS_EXTENSIONS_PATH)/modules/clusterpool/templates/install-config.azure.yaml.template -n $(CLUSTERPOOL_HOST_NAMESPACE)"; else \
+			$(SELF) oc/command OC_COMMAND="create secret generic install.azure.secret.$(CLUSTERPOOL_INSTALL_CONFIG_SECRET_RANDOM) --from-file=$(CLUSTERPOOL_INSTALL_CONFIG_SECRET_FILE) -n $(CLUSTERPOOL_HOST_NAMESPACE)"; fi; \
+		sed -e "s;__CLUSTERPOOL_INSTALL_CONFIG_SECRET_NAME__;install.azure.secret.$(CLUSTERPOOL_INSTALL_CONFIG_SECRET_RANDOM);g" \
+			$(BUILD_HARNESS_EXTENSIONS_PATH)/modules/clusterpool/templates/clusterpool.installconfigsecret.yaml.template >> .$(CLUSTERPOOL_NAME).az.clusterpool.yaml; fi
 	@sed -e "s;__CLUSTERPOOL_AZURE_CREDS_NAME__;$(CLUSTERPOOL_AZURE_CRED_NAME);g" \
 		-e "s;__CLUSTERPOOL_AZURE_REGION__;$(CLUSTERPOOL_AZURE_REGION);g" \
 		-e "s;__CLUSTERPOOL_AZURE_BASE_DOMAIN_RESOURCE_GROUP_NAME__;$(CLUSTERPOOL_AZURE_BASE_DOMAIN_RESOURCE_GROUP_NAME);g" \
@@ -190,6 +202,12 @@ clusterpool/gcp/create-clusterpool: %gcp/create-clusterpool: %_init
 		-e "s;__CLUSTERPOOL_PULL_SECRET_NAME__;$(CLUSTERPOOL_PULL_SECRET_NAME);g" \
 		$(BUILD_HARNESS_EXTENSIONS_PATH)/modules/clusterpool/templates/clusterpool.prefix.yaml.template \
 		> .$(CLUSTERPOOL_NAME).gcp.clusterpool.yaml
+	@if [ ! -z "$(CLUSTERPOOL_INSTALL_CONFIG_SECRET_FILE)" ]; then \
+		if [ "default" ==  "$(CLUSTERPOOL_INSTALL_CONFIG_SECRET_FILE)" ]; then \
+			$(SELF) oc/command OC_COMMAND="create secret generic install.gcp.secret.$(CLUSTERPOOL_INSTALL_CONFIG_SECRET_RANDOM) --from-file=$(BUILD_HARNESS_EXTENSIONS_PATH)/modules/clusterpool/templates/install-config.gcp.yaml.template -n $(CLUSTERPOOL_HOST_NAMESPACE)"; else \
+			$(SELF) oc/command OC_COMMAND="create secret generic install.gcp.secret.$(CLUSTERPOOL_INSTALL_CONFIG_SECRET_RANDOM) --from-file=$(CLUSTERPOOL_INSTALL_CONFIG_SECRET_FILE) -n $(CLUSTERPOOL_HOST_NAMESPACE)"; fi; \
+		sed -e "s;__CLUSTERPOOL_INSTALL_CONFIG_SECRET_NAME__;install.gcp.secret.$(CLUSTERPOOL_INSTALL_CONFIG_SECRET_RANDOM);g" \
+			$(BUILD_HARNESS_EXTENSIONS_PATH)/modules/clusterpool/templates/clusterpool.installconfigsecret.yaml.template >> .$(CLUSTERPOOL_NAME).gcp.clusterpool.yaml; fi
 	@sed -e "s;__CLUSTERPOOL_GCP_CREDS_NAME__;$(CLUSTERPOOL_GCP_CRED_NAME);g" \
 		-e "s;__CLUSTERPOOL_GCP_REGION__;$(CLUSTERPOOL_GCP_REGION);g" \
 		$(BUILD_HARNESS_EXTENSIONS_PATH)/modules/clusterpool/templates/clusterpool.suffix.gcp.yaml.template \
